@@ -1,4 +1,4 @@
-package com.app.service.covid.api;
+package com.app.mining.service.covid.api;
 
 import java.io.IOException;
 import java.text.Format;
@@ -11,11 +11,9 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.app.mapper.CovidCasesAreaMapper;
-import com.app.repository.covid.CovidCasesRepository;
 import com.app.entity.CovidCasesAreaEntity;
-import com.app.model.CovidCasesArea;
 import com.app.model.api.Covid19ApiModel;
+import com.app.repository.covid.CovidCasesRepository;
 import com.app.util.DateTools;
 import com.app.util.ResffulServices;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -23,13 +21,12 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 
-import fr.xebia.extras.selma.Selma;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class CovidMiningApiTotalCasesImpl implements CovidMiningAPITotalCases {
-
+	
 	private final static String URL = "https://api.covid19api.com/total/country/malaysia/status/confirmed?from=";
 
 	private final static String API_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
@@ -87,7 +84,7 @@ public class CovidMiningApiTotalCasesImpl implements CovidMiningAPITotalCases {
 
 	private void updateDB(List<Covid19ApiModel> covid19ApiModels) throws ParseException {
 
-		List<CovidCasesAreaEntity> covidCasesAreaEntities = covidCasesRepository.listLast5RecordsHQL();
+		List<CovidCasesAreaEntity> covidCasesAreaEntities = covidCasesRepository.listLast5Records();
 
 		for (Covid19ApiModel covid19ApiModel : covid19ApiModels) {
 			covid19ApiModel.getDate();
@@ -157,22 +154,7 @@ public class CovidMiningApiTotalCasesImpl implements CovidMiningAPITotalCases {
 		return json;
 	}
 
-	@Override
-	public List<CovidCasesArea> getLast5RecordsMY() throws Exception {
-		// TODO Auto-generated method stub
-		List<CovidCasesAreaEntity> casesEntities = covidCasesRepository.listLast5RecordsHQL();
-
-		CovidCasesAreaMapper mapper = Selma.builder(CovidCasesAreaMapper.class).build();
-
-		List<CovidCasesArea> casesPojos = new ArrayList<CovidCasesArea>();
-		for (CovidCasesAreaEntity covidCasesAreaEntity : casesEntities) {
-			CovidCasesArea covidCasesArea = mapper.asResource(covidCasesAreaEntity);
-			casesPojos.add(covidCasesArea);
-		}
-
-		log.info("getLast5RecordsMY ends.  cases = {} ", casesPojos);
-		return casesPojos;
-	}
+	
 
 	@Override
 	public String getTotalfromDB() throws Exception {
@@ -208,4 +190,6 @@ public class CovidMiningApiTotalCasesImpl implements CovidMiningAPITotalCases {
 		log.info("getTotalfromDB ends.  totalCases = {} date={}", totalCases,date);
 		return "Total Cases " + totalCases + " (" + date + ")";
 	}
+
+
 }

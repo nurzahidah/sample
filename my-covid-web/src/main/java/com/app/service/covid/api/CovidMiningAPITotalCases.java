@@ -6,7 +6,7 @@ import com.app.model.CovidCasesArea;
 
 public interface CovidMiningAPITotalCases {
 
-	// String getTotalCasesMY() throws Exception;
+	//String getTotalCasesMY() throws Exception;
 
 	String doMining() throws Exception;
 	

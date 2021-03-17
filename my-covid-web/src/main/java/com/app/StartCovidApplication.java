@@ -8,8 +8,15 @@ import org.springframework.context.ApplicationContext;
 
 import lombok.extern.slf4j.Slf4j;
 
+//TODO: Practical bonus Desc 1: 
+//"com.app" scanning whole directory is wastage as it will scan all directories
+//WebConfiguration.java should move to app.com.config package
+//scanning component should change from "com.app" to ""com.app.config"
+//repository means for db
+
+//com.app will go through all package one by one
 @SpringBootApplication(scanBasePackages = {  "com.app.controller","com.app.repository.covid",
-		"com.app.entity","com.app.service","com.app"})
+		"com.app.entity","com.app.service","com.app.config"})
 @Slf4j
 public class StartCovidApplication {
 

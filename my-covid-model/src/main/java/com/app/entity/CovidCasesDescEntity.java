@@ -8,6 +8,7 @@ import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+//table in database
 @Entity
 @Table(name = "trx_covid_cases_desc")
 @Getter

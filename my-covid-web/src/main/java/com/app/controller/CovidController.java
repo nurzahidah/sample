@@ -1,6 +1,5 @@
 package com.app.controller;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,8 +10,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.app.entity.CovidCasesDescEntity;
-import com.app.entity.CovidCasesAreaEntity;
-import com.app.mapper.CovidAreaDescMapper;
 import com.app.model.CovidCasesArea;
 import com.app.model.CovidCasesDesc;
 import com.app.repository.covid.CovidCasesDescRepository;
@@ -20,7 +17,6 @@ import com.app.repository.covid.CovidCasesRepository;
 import com.app.service.covid.CovidService;
 import com.app.service.covid.api.CovidMiningAPITotalCases;
 
-import fr.xebia.extras.selma.Selma;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -117,7 +113,7 @@ public class CovidController {
 	// It should return some error when you pass a string as parameter to the HTTP
 	// get
 	// Example, http://localhost:8081/covid/hello?aNumberOnly=string
-
+	
 	@GetMapping(GET_LOG_API)
 	String getLogging(@RequestParam String aNumberOnly) throws Exception {
 		log.info("getLogging() started, requestParamvalue={}", aNumberOnly);
@@ -138,29 +134,14 @@ public class CovidController {
 		CovidCasesDesc covidCasesDesc = null;
 		try {
 
-			if (desc == null || desc.equals("undefined") || desc.equals(""))  {
-				throw new NullPointerException(ADD_COVID + ", desc is null or empty");
-			}
-			List<CovidCasesAreaEntity> cases = covidCasesRepository.findAll();
-			CovidCasesAreaEntity covidCasesAreaEntity = cases.get(0);
-			CovidCasesAreaEntity covidCasesAreaEntityNew = new CovidCasesAreaEntity();
-
-			covidCasesAreaEntityNew.setArea(covidCasesAreaEntity.getArea());
-			covidCasesAreaEntityNew.setDate(new Date());
-
-			CovidCasesDescEntity covidAreaDescEntity = new CovidCasesDescEntity();
-
-			covidAreaDescEntity.setDescription(desc);
-
-			CovidCasesDescEntity savedEntity = covidCasesDescRepository.save(covidAreaDescEntity);
-
-			CovidAreaDescMapper mapper = Selma.builder(CovidAreaDescMapper.class).build();
-
-			covidCasesDesc = mapper.asResource(savedEntity);
+		 if (desc == null || desc.equals("undefined") || desc.equals("")) {
+		throw new NullPointerException(ADD_COVID + ", desc is null or empty");
+		}
+		covidCasesDesc = covidService.addCovid(desc);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			log.error("add() exception " + e.getMessage());
-			throw new Exception(e.getMessage());
+		// TODO Auto-generated catch block
+		log.error("add() exception " + e.getMessage());
+		throw new Exception(e.getMessage());
 		}
 
 		return covidCasesDesc;
@@ -169,21 +150,18 @@ public class CovidController {
 	// TODO: Practical 4 (Delete)
 	// Move the logic below under try/catch area to CovidServiceImpl
 	// check out the remarks of "TODO: Practical 4 " on CovidServiceImpl
+	
+	//creating a delete mapping that delete data
 	@DeleteMapping(DELETE_COVID)
 	int deleteCovid(@RequestParam(required = true) long id) throws Exception {
 		log.info("deleteCovid() started id={}", id);
-
+		
+		int num = 0;
+	
 		try {
-
-			Optional<CovidCasesDescEntity> entityOptional = covidCasesDescRepository.findById(id);
-
-			log.info("Entity found == " + entityOptional.isPresent());
-
-			if (entityOptional.isPresent()) {
-				CovidCasesDescEntity covidAreaDescEntity = entityOptional.get();
-				covidCasesDescRepository.delete(covidAreaDescEntity);
-				return 1;
-			}
+			num = covidService.deleteCovid(id);
+			if(num==1)
+				return num;
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -191,6 +169,7 @@ public class CovidController {
 			throw new Exception(e.getMessage());
 		}
 
-		return 0;
+		return num;
+		
 	}
 }

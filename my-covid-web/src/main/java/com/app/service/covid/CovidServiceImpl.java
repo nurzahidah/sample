@@ -1,7 +1,9 @@
 package com.app.service.covid;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -76,18 +78,40 @@ public class CovidServiceImpl implements CovidService {
 	
 	// TODO: Related to Practical 4 (Add)
 	@Override
-	public List<CovidCasesArea> addCovid() {
-		log.info("addCovid started");
+	public CovidCasesDesc addCovid(String desc) {
+	log.info("addCovid started");
+	CovidCasesDesc covidCasesDesc = null;
+	
+	//create row data..kena ada entity baru
+	CovidCasesDescEntity covidAreaDescEntity = new CovidCasesDescEntity();
 
-		return null;
+	//desc in db
+	 covidAreaDescEntity.setDescription(desc);
+	 
+	 //return savedEntitiy
+	 CovidCasesDescEntity savedEntity = covidCasesDescRepository.save(covidAreaDescEntity);
 
-	}
+	 CovidAreaDescMapper mapper = Selma.builder(CovidAreaDescMapper.class).build();
+
+	 covidCasesDesc = mapper.asResource(savedEntity);
+	return covidCasesDesc;
+
+	 }
 
 	// TODO: Related to Practical 4 (Delete)
-	public List<CovidCasesArea> deleteCovid() {
+	public int deleteCovid(long id) {
 		log.info("deleteCovid started");
+		
+		Optional<CovidCasesDescEntity> entityOptional = covidCasesDescRepository.findById(id);
 
-		return null;
+		log.info("Entity found == " + entityOptional.isPresent());
 
+		if (entityOptional.isPresent()) {
+			CovidCasesDescEntity covidAreaDescEntity = entityOptional.get();
+			covidCasesDescRepository.delete(covidAreaDescEntity);
+			return 1;
+		}
+		return 0;
+		
 	}
 }

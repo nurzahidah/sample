@@ -1,22 +1,25 @@
 package com.app.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.app.entity.CovidCasesDescEntity;
+import com.app.mapper.CovidAreaDescMapper;
 import com.app.model.CovidCasesArea;
 import com.app.model.CovidCasesDesc;
 import com.app.repository.covid.CovidCasesDescRepository;
-import com.app.repository.covid.CovidCasesRepository;
 import com.app.service.covid.CovidService;
 import com.app.service.covid.api.CovidMiningAPITotalCases;
 
+import fr.xebia.extras.selma.Selma;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -36,15 +39,15 @@ public class CovidController {
 	private final static String GET_HELLO_API = "/covid/hello";
 
 	private final static String GET_LOG_API = "/covid/logging";
+	
+	private final static String PUT_API = "/covid/put";
+	
+	private final static String POST_API = "/covid/post";
+	
+	private final static String DELETE_COVID_SOAPUI = "/covid/delete/soap";
 
 	@Autowired
 	private CovidService covidService;
-
-	@Autowired
-	private CovidCasesRepository covidCasesRepository;
-
-	@Autowired
-	private CovidCasesDescRepository covidCasesDescRepository;
 
 	@Autowired
 	CovidMiningAPITotalCases covidMiningAPITotalCases;
@@ -98,10 +101,6 @@ public class CovidController {
 		return covidCasesAreas;
 	}
 
-	// TODO: Practical 1 - Complete the API below
-	// It should return hello when you hit http://localhost:8081/covid/hello on
-	// browser
-
 	@GetMapping(GET_HELLO_API)
 	String getHello() throws Exception {
 		log.info("getHello() started");
@@ -109,11 +108,6 @@ public class CovidController {
 		return "Hello API";
 	}
 
-	// TODO: Practical 2 - Capture the error message below from log file
-	// It should return some error when you pass a string as parameter to the HTTP
-	// get
-	// Example, http://localhost:8081/covid/hello?aNumberOnly=string
-	
 	@GetMapping(GET_LOG_API)
 	String getLogging(@RequestParam String aNumberOnly) throws Exception {
 		log.info("getLogging() started, requestParamvalue={}", aNumberOnly);
@@ -124,9 +118,6 @@ public class CovidController {
 		return "you have input =>" + aNumberOnly;
 	}
 
-	// TODO: Practical 4 (Add)
-	// Move the logic below under try/catch area to CovidServiceImpl
-	// check out the remarks of "TODO: Practical 4 " on CovidServiceImpl
 	@GetMapping(ADD_COVID)
 	CovidCasesDesc addCovid(@RequestParam(required = true) String desc) throws Exception {
 		log.info("addCovid() started={}", desc);
@@ -138,7 +129,8 @@ public class CovidController {
 		throw new NullPointerException(ADD_COVID + ", desc is null or empty");
 		}
 		covidCasesDesc = covidService.addCovid(desc);
-		} catch (Exception e) {
+		} 
+		catch (Exception e) {
 		// TODO Auto-generated catch block
 		log.error("add() exception " + e.getMessage());
 		throw new Exception(e.getMessage());
@@ -147,11 +139,6 @@ public class CovidController {
 		return covidCasesDesc;
 	}
 
-	// TODO: Practical 4 (Delete)
-	// Move the logic below under try/catch area to CovidServiceImpl
-	// check out the remarks of "TODO: Practical 4 " on CovidServiceImpl
-	
-	//creating a delete mapping that delete data
 	@DeleteMapping(DELETE_COVID)
 	int deleteCovid(@RequestParam(required = true) long id) throws Exception {
 		log.info("deleteCovid() started id={}", id);
@@ -172,4 +159,30 @@ public class CovidController {
 		return num;
 		
 	}
+	// TODO: Angular Practical 7 - Full Stack Application for Covid Put HTTP
+	@PutMapping(PUT_API)
+	CovidCasesDesc putCovid(@RequestBody CovidCasesDesc covidCasesDesc) throws RuntimeException {
+		log.info("putCovid() started, covidCasesDesc={}", covidCasesDesc);
+		
+		return covidService.putCovid(covidCasesDesc);
+	}
+	
+	@PostMapping(POST_API)
+	CovidCasesDesc postCovid(@RequestBody CovidCasesDesc covidCasesDesc) {
+		log.info("postCovid() started, covidCasesDesc={}", covidCasesDesc);
+		
+		return covidService.postCovid(covidCasesDesc);
+		//return should be the saved CovidCasesDesc with values..refer covidService
+	}
+	
+	// TODO: Performance Practical 2 - Performance and Functional Testing
+		@DeleteMapping(DELETE_COVID_SOAPUI)
+
+		int deleteCovidSoap(@RequestParam(required = true) String desc) throws Exception {
+			log.info("deleteCovidSoap() started desc={}", desc);
+			
+			log.info("deleteCovidSoap() ended");
+			return covidService.deleteCovidSoap(desc);
+			//return 0;
+		}
 }

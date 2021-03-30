@@ -17,5 +17,11 @@ public interface CovidService {
 
 	int deleteCovid(long id);
 
+	CovidCasesDesc putCovid(CovidCasesDesc covidCasesDesc);
+
+	CovidCasesDesc postCovid(CovidCasesDesc covidCasesDesc);
+
+	int deleteCovidSoap(String desc);
+
 
 }

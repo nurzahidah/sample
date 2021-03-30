@@ -7,6 +7,8 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.app.error.IDNotFoundException;
 import com.app.mapper.CovidAreaDescMapper;
@@ -112,6 +114,40 @@ public class CovidServiceImpl implements CovidService {
 			return 1;
 		}
 		return 0;
+	}
+	@Override
+	public CovidCasesDesc putCovid(CovidCasesDesc covidCasesDesc) {
+		log.info("putCovid() started, covidCasesDesc={}", covidCasesDesc);
+
+		CovidAreaDescMapper mapper = Selma.builder(CovidAreaDescMapper.class).build();
+		CovidCasesDescEntity covidCasesDescEntity = mapper.asEntity(covidCasesDesc);
+		CovidCasesDescEntity savedEntity = covidCasesDescRepository.save(covidCasesDescEntity);
+		covidCasesDesc = mapper.asResource(savedEntity);
 		
+		log.info("putCovid() ends, covidCasesDescSaved={}", covidCasesDesc);
+		return covidCasesDesc;
+	}
+	
+	@Override
+	public CovidCasesDesc postCovid(CovidCasesDesc covidCasesDesc) {
+		log.info("postCovid() started, covidCasesDesc={}", covidCasesDesc);
+
+		CovidAreaDescMapper mapper = Selma.builder(CovidAreaDescMapper.class).build();
+		CovidCasesDescEntity covidCasesDescEntity = mapper.asEntity(covidCasesDesc);
+		CovidCasesDescEntity savedEntity = covidCasesDescRepository.save(covidCasesDescEntity);
+		covidCasesDesc = mapper.asResource(savedEntity);
+		
+		return covidCasesDesc;
+	}
+
+	@Override
+	public int deleteCovidSoap(String desc) {
+		log.info("deleteCovidSoap() started desc={}", desc);
+		
+		// complete the implementation below
+		int deleted = covidCasesDescRepository.deleteDescWithCondition(desc);
+		
+		log.info("deleteCovidSoap() ended deleted={}", deleted);
+		return deleted;
 	}
 }

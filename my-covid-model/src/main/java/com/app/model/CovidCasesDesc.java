@@ -11,5 +11,5 @@ public class CovidCasesDesc {
 
 	private String description;
 	
-	private String extra2;
+	//private String extra2;
 }

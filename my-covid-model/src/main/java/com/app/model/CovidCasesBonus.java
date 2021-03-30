@@ -14,5 +14,4 @@ public class CovidCasesBonus {
 
 	private String description;
 	
-	private String extra2;
 }

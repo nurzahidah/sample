@@ -45,10 +45,12 @@ public class CovidController {
 	private final static String POST_API = "/covid/post";
 	
 	private final static String DELETE_COVID_SOAPUI = "/covid/delete/soap";
+	
+	private final static String FIND_DUPLICATE_DELETE_COVID = "/covid/delete/duplicate";
 
 	@Autowired
 	private CovidService covidService;
-
+	
 	@Autowired
 	CovidMiningAPITotalCases covidMiningAPITotalCases;
 
@@ -183,6 +185,25 @@ public class CovidController {
 			
 			log.info("deleteCovidSoap() ended");
 			return covidService.deleteCovidSoap(desc);
-			//return 0;
+			
+		}
+		
+		// TODO: Angular Practical 11 - Remove Duplicate values
+		@DeleteMapping(FIND_DUPLICATE_DELETE_COVID)
+		List<String> findDuplicateNdelete() throws Exception {
+			log.info("findDuplicateNdelete() started");
+
+			List<String> e = covidService.findDuplicateNdelete();
+			
+			for (String s: e) {
+				log.info ("Duplicate value found on Description Table--->" + s);
+				covidService.deleteCovidSoap(s);
+				log.info ("Value Deleted--->" + s);
+			}
+			
+			log.info("findDuplicateNdelete() ended");
+			
+			//return covidService.findDuplicateNdelete();
+			return e;
 		}
 }

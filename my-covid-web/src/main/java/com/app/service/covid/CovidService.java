@@ -23,5 +23,7 @@ public interface CovidService {
 
 	int deleteCovidSoap(String desc);
 
+	List<String> findDuplicateNdelete();
+
 
 }

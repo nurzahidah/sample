@@ -144,10 +144,27 @@ public class CovidServiceImpl implements CovidService {
 	public int deleteCovidSoap(String desc) {
 		log.info("deleteCovidSoap() started desc={}", desc);
 		
-		// complete the implementation below
 		int deleted = covidCasesDescRepository.deleteDescWithCondition(desc);
 		
 		log.info("deleteCovidSoap() ended deleted={}", deleted);
 		return deleted;
 	}
+	
+	@Override
+	public List<String> findDuplicateNdelete() {
+		log.info("findDuplicateNdelete() started");
+		
+		List<String> e = covidCasesDescRepository.findDuplicateNdelete();
+		
+		for (String s: e) {
+			log.info ("Duplicate value found on Description Table--->" + s);
+
+			log.info ("Value Deleted--->" + s);
+		}
+		
+		log.info("findDuplicateNdelete() ended");
+		return e;
+	}
+	
+	
 }

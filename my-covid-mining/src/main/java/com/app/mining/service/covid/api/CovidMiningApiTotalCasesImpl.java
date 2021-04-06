@@ -12,30 +12,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.app.entity.CovidCasesAreaEntity;
+import com.app.error.GeneralException;
+import com.app.mapper.CovidCasesAreaMapper;
+import com.app.model.CovidCasesArea;
 import com.app.model.api.Covid19ApiModel;
 import com.app.repository.covid.CovidCasesRepository;
 import com.app.util.DateTools;
 import com.app.util.ResffulServices;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 
+import fr.xebia.extras.selma.Selma;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class CovidMiningApiTotalCasesImpl implements CovidMiningAPITotalCases {
-	
-	private final static String URL = "https://api.covid19api.com/total/country/malaysia/status/confirmed?from=";
 
-	private final static String API_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+	private static final String URL = "https://api.covid19api.com/total/country/malaysia/status/confirmed?from=";
+
+	private static final String API_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
 	@Autowired
 	CovidCasesRepository covidCasesRepository;
 
 	@Override
-	public String doMining() throws Exception {
+	public String doMining() throws GeneralException {
 
 		String defaultTime = "T00:00:00Z";
 
@@ -45,18 +47,55 @@ public class CovidMiningApiTotalCasesImpl implements CovidMiningAPITotalCases {
 
 		Date date3DayBefore = DateTools.minusDate(3);
 
-		String json = getTotalCasesMYFromAPI(defaultDate, defaultTime, date1DayBefore, date3DayBefore);
+		int totalCases = 0;
 
-		List<Covid19ApiModel> covid19ApiModels = convertToObjects(json);
+		try {
 
-		updateDB(covid19ApiModels);
-
-		int totalCases = getCasesDifferent(covid19ApiModels);
-
-		log.info("convertToObjects Ends. Total Cases = {} ({})", totalCases, date1DayBefore.toString());
+			String json = getTotalCasesMYFromAPI(defaultDate, defaultTime, date1DayBefore, date3DayBefore);
+			List<Covid19ApiModel> covid19ApiModels = convertToObjects(json);
+			updateDB(covid19ApiModels);
+			totalCases = getCasesDifferent(covid19ApiModels);
+			log.info("convertToObjects Ends. Total Cases = {} ({})", totalCases, date1DayBefore.toString());
+		} catch (Exception e) {
+			throw new GeneralException(e.getMessage());
+		}
 
 		return "Total Cases " + totalCases + " (" + date1DayBefore.toString() + ")";
 
+	}
+
+	private int getCasesDifferent(List<Covid19ApiModel> covid19ApiModels) {
+		Covid19ApiModel first = covid19ApiModels.get(0);
+		Covid19ApiModel last = covid19ApiModels.get(1);
+
+		log.info("first cases ={}, last cases= {} ", first.getCases(), last.getCases());
+
+		return last.getCases() - first.getCases();
+
+	}
+
+	private void updateDB(List<Covid19ApiModel> covid19ApiModels) throws ParseException {
+
+		List<CovidCasesAreaEntity> covidCasesAreaEntities = covidCasesRepository.listLast2RecordsHQL();
+
+		for (Covid19ApiModel covid19ApiModel : covid19ApiModels) {
+			covid19ApiModel.getDate();
+
+			CovidCasesAreaEntity covidCasesAreaEntity = new CovidCasesAreaEntity();
+			covidCasesAreaEntity.setCases(covid19ApiModel.getCases());
+
+			Boolean isDuplicate = isDuplicate(covidCasesAreaEntities, covid19ApiModel);
+			if (!isDuplicate) {
+				log.info("updateDB this record. covid19ApiModel date={}" + covid19ApiModel.getDate());
+				Date date = DateTools.convertDate(covid19ApiModel.getDate(), API_DATE_FORMAT);
+
+				covidCasesAreaEntity.setDate(date);
+				covidCasesRepository.save(covidCasesAreaEntity);
+			}
+
+		}
+
+		log.info("updateDB Ends.");
 	}
 
 	private Boolean isDuplicate(List<CovidCasesAreaEntity> covidCasesAreaEntities, Covid19ApiModel covid19ApiModel) {
@@ -82,43 +121,7 @@ public class CovidMiningApiTotalCasesImpl implements CovidMiningAPITotalCases {
 		return false;
 	}
 
-	private void updateDB(List<Covid19ApiModel> covid19ApiModels) throws ParseException {
-
-		List<CovidCasesAreaEntity> covidCasesAreaEntities = covidCasesRepository.listLast5Records();
-
-		for (Covid19ApiModel covid19ApiModel : covid19ApiModels) {
-			covid19ApiModel.getDate();
-
-			CovidCasesAreaEntity covidCasesAreaEntity = new CovidCasesAreaEntity();
-			covidCasesAreaEntity.setCases(covid19ApiModel.getCases());
-
-			if (!isDuplicate(covidCasesAreaEntities, covid19ApiModel)) {
-				log.info("updateDB this record. covid19ApiModel date={}" + covid19ApiModel.getDate());
-				Date date = DateTools.convertDate(covid19ApiModel.getDate(), API_DATE_FORMAT);
-
-				covidCasesAreaEntity.setDate(date);
-				covidCasesRepository.save(covidCasesAreaEntity);
-			}
-
-		}
-
-		log.info("updateDB Ends.");
-	}
-
-	private int getCasesDifferent(List<Covid19ApiModel> covid19ApiModels) {
-		Covid19ApiModel first = covid19ApiModels.get(0);
-		Covid19ApiModel last = covid19ApiModels.get(1);
-
-		log.info("first cases ={}, last cases= {} ", first.getCases(), last.getCases());
-
-		int totalCases = last.getCases() - first.getCases();
-
-		return totalCases;
-
-	}
-
-	private List<Covid19ApiModel> convertToObjects(String json)
-			throws JsonParseException, JsonMappingException, IOException {
+	private List<Covid19ApiModel> convertToObjects(String json) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 
 		CollectionType javaType = mapper.getTypeFactory().constructCollectionType(List.class, Covid19ApiModel.class);
@@ -132,8 +135,8 @@ public class CovidMiningApiTotalCasesImpl implements CovidMiningAPITotalCases {
 	}
 
 	private String getTotalCasesMYFromAPI(String defaultDate, String defaultTime, Date date1DayBefore,
-			Date date3DayBefore) throws Exception {
-		StringBuffer urlBuffer = new StringBuffer();
+			Date date3DayBefore) throws IOException {
+		StringBuilder urlBuffer = new StringBuilder();
 
 		String stringDate1DayBefore = DateTools.getDate(defaultDate, date1DayBefore) + defaultTime;
 		String stringDate3DayBefore = DateTools.getDate(defaultDate, date3DayBefore) + defaultTime;
@@ -148,24 +151,22 @@ public class CovidMiningApiTotalCasesImpl implements CovidMiningAPITotalCases {
 		urlBuffer.append(stringDate1DayBefore);
 
 		log.info("urlBuffer = {} ", urlBuffer.toString());
-		String json = ResffulServices.GetServices(urlBuffer.toString());
+		String json = ResffulServices.getServices(urlBuffer.toString());
 		log.info("getTotalCasesMY ends. json = {} ", json);
 
 		return json;
 	}
 
-	
-
 	@Override
-	public String getTotalfromDB() throws Exception {
+	public String getTotalfromDB() {
 		log.info("getTotalfromDB starts. ");
-		List<CovidCasesAreaEntity> casesEntities = covidCasesRepository.listLast2Records();
+		List<CovidCasesAreaEntity> casesEntities = covidCasesRepository.listLast2RecordsHQL();
 		log.info("getTotalfromDB casesEntities size ={} ", casesEntities.size());
-		
+
 		int totalCases = 0;
 		String date = "";
 		if (!casesEntities.isEmpty()) {
-			List<Covid19ApiModel> covidApiModels = new ArrayList<Covid19ApiModel>();
+			List<Covid19ApiModel> covidApiModels = new ArrayList<>();
 
 			CovidCasesAreaEntity covidCasesAreaEntity = casesEntities.get(1);
 			log.info("getTotalfromDB Last covidCasesAreaEntity date={}, cases={}", covidCasesAreaEntity.getDate(),
@@ -185,11 +186,24 @@ public class CovidMiningApiTotalCasesImpl implements CovidMiningAPITotalCases {
 			totalCases = getCasesDifferent(covidApiModels);
 		}
 
-		
-		
-		log.info("getTotalfromDB ends.  totalCases = {} date={}", totalCases,date);
+		log.info("getTotalfromDB ends.  totalCases = {} date={}", totalCases, date);
 		return "Total Cases " + totalCases + " (" + date + ")";
 	}
 
+	@Override
+	public List<CovidCasesArea> getLast2RecordsMY() {
+		List<CovidCasesAreaEntity> casesEntities = covidCasesRepository.listLast2RecordsHQL();
+
+		CovidCasesAreaMapper mapper = Selma.builder(CovidCasesAreaMapper.class).build();
+
+		List<CovidCasesArea> casesPojos = new ArrayList<>();
+		for (CovidCasesAreaEntity covidCasesAreaEntity : casesEntities) {
+			CovidCasesArea covidCasesArea = mapper.asResource(covidCasesAreaEntity);
+			casesPojos.add(covidCasesArea);
+		}
+
+		log.info("getLast5RecordsMY ends.  cases = {} ", casesPojos);
+		return casesPojos;
+	}
 
 }

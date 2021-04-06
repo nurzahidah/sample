@@ -1,24 +1,21 @@
 package com.app.service.covid;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
+import com.app.entity.CovidCasesAreaEntity;
+import com.app.entity.CovidCasesDescEntity;
 import com.app.error.IDNotFoundException;
 import com.app.mapper.CovidAreaDescMapper;
 import com.app.mapper.CovidCasesAreaMapper;
-import com.app.repository.covid.CovidCasesDescRepository;
-import com.app.repository.covid.CovidCasesRepository;
-import com.app.entity.CovidCasesDescEntity;
-import com.app.entity.CovidCasesAreaEntity;
 import com.app.model.CovidCasesArea;
 import com.app.model.CovidCasesDesc;
+import com.app.repository.covid.CovidCasesDescRepository;
+import com.app.repository.covid.CovidCasesRepository;
 
 import fr.xebia.extras.selma.Selma;
 
@@ -39,7 +36,7 @@ public class CovidServiceImpl implements CovidService {
 		log.info("getCovid started");
 		CovidCasesAreaMapper mapper = Selma.builder(CovidCasesAreaMapper.class).build();
 		List<CovidCasesAreaEntity> covidCaseEntities = covidCasesRepository.findAll();
-		List<CovidCasesArea> covidCasesAreaList = new ArrayList<CovidCasesArea>();
+		List<CovidCasesArea> covidCasesAreaList = new ArrayList<>();
 		if (covidCaseEntities == null) {
 			throw new IDNotFoundException(0L);
 		} else {
@@ -61,7 +58,7 @@ public class CovidServiceImpl implements CovidService {
 		log.info("getCovidDesc started");
 		CovidAreaDescMapper mapper = Selma.builder(CovidAreaDescMapper.class).build();
 		List<CovidCasesDescEntity> covidCaseDescEntities = covidCasesDescRepository.findAll();
-		List<CovidCasesDesc> covidCasesDescList = new ArrayList<CovidCasesDesc>();
+		List<CovidCasesDesc> covidCasesDescList = new ArrayList<>();
 		if (covidCaseDescEntities == null) {
 			throw new IDNotFoundException(0L);
 		} else {
@@ -78,7 +75,7 @@ public class CovidServiceImpl implements CovidService {
 
 	}
 	
-	// TODO: Related to Practical 4 (Add)
+	// Add Data
 	@Override
 	public CovidCasesDesc addCovid(String desc) {
 	log.info("addCovid started");
@@ -100,13 +97,12 @@ public class CovidServiceImpl implements CovidService {
 
 	 }
 
-	// TODO: Related to Practical 4 (Delete)
+	// Delete Data
 	public int deleteCovid(long id) {
-		log.info("deleteCovid started");
 		
 		Optional<CovidCasesDescEntity> entityOptional = covidCasesDescRepository.findById(id);
 
-		log.info("Entity found == " + entityOptional.isPresent());
+		log.info("Entity found == {}" , entityOptional.isPresent());
 
 		if (entityOptional.isPresent()) {
 			CovidCasesDescEntity covidAreaDescEntity = entityOptional.get();
@@ -149,7 +145,6 @@ public class CovidServiceImpl implements CovidService {
 		log.info("deleteCovidSoap() ended deleted={}", deleted);
 		return deleted;
 	}
-	
 	@Override
 	public List<String> findDuplicateNdelete() {
 		log.info("findDuplicateNdelete() started");
@@ -157,7 +152,7 @@ public class CovidServiceImpl implements CovidService {
 		List<String> e = covidCasesDescRepository.findDuplicateNdelete();
 		
 		for (String s: e) {
-			log.info ("Duplicate value found on Description Table--->" + s);
+			log.info ("Duplicate value found on Description Table--->{}" + s);
 
 			log.info ("Value Deleted--->" + s);
 		}
@@ -165,6 +160,7 @@ public class CovidServiceImpl implements CovidService {
 		log.info("findDuplicateNdelete() ended");
 		return e;
 	}
+	
 	
 	
 }

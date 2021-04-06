@@ -9,8 +9,6 @@ public interface CovidService {
 
 	List<CovidCasesArea> getCovid();
 
-	//List<CovidCasesArea> addCovid();
-
 	List<CovidCasesDesc> getCovidDesc();
 
 	CovidCasesDesc addCovid(String desc);
@@ -24,6 +22,5 @@ public interface CovidService {
 	int deleteCovidSoap(String desc);
 
 	List<String> findDuplicateNdelete();
-
 
 }

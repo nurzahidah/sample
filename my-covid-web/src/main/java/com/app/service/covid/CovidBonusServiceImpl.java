@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.app.entity.CovidCasesBonusEntity;
+import com.app.error.GeneralException;
 import com.app.error.IDNotFoundException;
 import com.app.mapper.CovidAreaBonusMapper;
 import com.app.model.CovidCasesBonus;
@@ -26,7 +27,7 @@ public class CovidBonusServiceImpl implements CovidBonusService {
 	CovidCasesBonusRepository covidCasesBonusRepository;
 	
 	@Override
-	public List<CovidCasesBonus> bonus() throws Exception {
+	public List<CovidCasesBonus> bonus() throws GeneralException {
 		List<CovidCasesBonus> covidCasesBonus = null;
 		log.info("bonus() started"); //log starts
 		
@@ -37,7 +38,7 @@ public class CovidBonusServiceImpl implements CovidBonusService {
 			throw new IDNotFoundException(0L);
 		} else {
 			
-			covidCasesBonus= new ArrayList<CovidCasesBonus>();
+			covidCasesBonus= new ArrayList<>();
 			for (CovidCasesBonusEntity entity : covidCaseBonusEntities) {
 				CovidCasesBonus model = mapper.asResource(entity);
 				covidCasesBonus.add(model);
@@ -45,10 +46,7 @@ public class CovidBonusServiceImpl implements CovidBonusService {
 			}
 			log.info(" bonus() return Size={}", covidCaseBonusEntities.size());
 		}
-		//untuk check debug dalam log.info
-		//for (CovidCasesBonus b :covidCasesBonus) {
-			//log.info("b--->" + b.getDescription());
-			//}
+		
 		log.info("bonus() ends"); //log ended
 		return covidCasesBonus;
 	}
